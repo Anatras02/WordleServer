@@ -5,6 +5,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.PriorityQueue;
 
+/**
+ * Classe che gestisce e calcola le statistiche del gioco.
+
+ * Questa classe aggrega le metriche dai giochi completati e fornisce un riepilogo statistico.
+ */
 public class Statistica {
     int partiteGiocate;
     int partiteVinte;
@@ -40,6 +45,11 @@ public class Statistica {
         return distribuzioneTentativi;
     }
 
+    /**
+     * Aggiunge una partita finita alle statistiche correnti.
+     *
+     * @param partita La partita finita da aggiungere.
+     */
     private void addPartita(Game partita) {
 
         if(partita.isPartitaFinita()) {
@@ -55,7 +65,7 @@ public class Statistica {
                 streakVittorie = 0;
             }
 
-            if (partita.isPartitaFinita()) {
+            if (partita.isPartitaFinita() && partita.isVinta()) {
                 int numeroTentativi = partita.getTentativi();
                 if (distribuzioneTentativi.containsKey(numeroTentativi)) {
                     distribuzioneTentativi.put(numeroTentativi, distribuzioneTentativi.get(numeroTentativi) + 1);

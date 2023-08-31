@@ -9,6 +9,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
 
+/**
+ * Classe astratta {@code Orm} rappresenta un Object-Relational Mapping (ORM) per manipolare dati.
+ * Fornisce metodi per caricare dati da file e salvarli.
+ */
 public abstract class Orm implements AutoCloseable {
     // È stata usata una classe LastTaskExecutor per evitare che il salvataggio su file
     // venga eseguito più volte in contemporanea, quello che succede è che viene eseguito
@@ -19,6 +23,9 @@ public abstract class Orm implements AutoCloseable {
     protected String filePath;
     protected Gson gson;
 
+    /**
+     * Costruttore che inizializza un'istanza di {@link Gson} con le impostazioni desiderate.
+     */
     Orm() {
         this.gson = new GsonBuilder()
                 .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
@@ -26,10 +33,21 @@ public abstract class Orm implements AutoCloseable {
                 .create();
     }
 
+    /**
+     * Carica il modello di dati da un file.
+     */
     protected abstract void caricaDaFile();
 
+    /**
+     * Restituisce il modello sotto forma di oggetto JSON da salvare.
+     *
+     * @return un oggetto rappresentante il modello da salvare in formato JSON.
+     */
     protected abstract Object modelToSaveToJson();
 
+    /**
+     * Salva il modello sincronamente su file.
+     */
     private void salvaSuFileSync() {
         try (FileWriter writer = new FileWriter(filePath)) {
             gson.toJson(modelToSaveToJson(), writer);
@@ -38,10 +56,18 @@ public abstract class Orm implements AutoCloseable {
         }
     }
 
+    /**
+     * Salva il modello su file in modo asincrono. Se più task di salvataggio vengono schedulati in successione,
+     * solo l'ultimo verrà effettivamente eseguito, garantendo che i dati più recenti siano quelli che vengono
+     * salvati.
+     */
     public void salvaSuFile() {
         executor.execute(this::salvaSuFileSync);
     }
 
+    /**
+     * Chiude le risorse associate a questo ORM.
+     */
     @Override
     public void close() {
         executor.shutdown();

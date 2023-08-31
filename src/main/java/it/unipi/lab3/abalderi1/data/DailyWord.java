@@ -4,13 +4,24 @@ import it.unipi.lab3.abalderi1.data.orm.DailyWordOrm;
 import it.unipi.lab3.abalderi1.data.orm.Orm;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
+/**
+ * Classe che rappresenta una parola del giorno associata a un timestamp.
+
+ * @see DailyWordOrm per dettagli sull'ORM associato.
+ */
 public class DailyWord extends Model implements Cloneable {
     transient DailyWordOrm dailyWordOrm = DailyWordOrm.getInstance();
 
     public String word;
     public LocalDateTime dateTime;
 
+    /**
+     * Costruttore che inizializza una nuova istanza di DailyWord con la parola fornita e imposta il timestamp corrente.
+     *
+     * @param word La parola del giorno.
+     */
     public DailyWord(String word) {
         super();
 
@@ -36,16 +47,24 @@ public class DailyWord extends Model implements Cloneable {
     }
 
     public void setDateTime(LocalDateTime dateTime) {
-        if (dateTime == null) {
-            this.dateTime = LocalDateTime.now();
-        } else {
-            this.dateTime = dateTime;
-        }
+        this.dateTime = Objects.requireNonNullElseGet(dateTime, LocalDateTime::now);
     }
 
+    /**
+     * Salva la parola del giorno corrente utilizzando l'ORM.
+     */
     public void salva() {
         DailyWordOrm dailyWordOrm = (DailyWordOrm) getOrm();
 
         dailyWordOrm.updateWord(this.word);
+    }
+
+    @Override
+    public DailyWord clone() {
+        try {
+            return (DailyWord) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
     }
 }

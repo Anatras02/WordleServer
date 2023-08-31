@@ -4,16 +4,16 @@ import it.unipi.lab3.abalderi1.data.Game;
 import it.unipi.lab3.abalderi1.data.User;
 
 /**
- * Permesso che verifica se una partita non è finita.
+ * Permesso che verifica se una partita è valida.
  */
-public class IsGameNotFinishedPermission implements Permission {
+public class IsGameValidPermission implements Permission {
     @Override
     public String getPermissionName() {
-        return "GiocoNonFinito";
+        return "PartitaNonValida";
     }
 
     @Override
     public boolean hasPermission(User user, Game lastGame) {
-        return lastGame != null && !lastGame.isPartitaFinita();
+        return lastGame != null && lastGame.isValid();
     }
 }

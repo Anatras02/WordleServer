@@ -7,35 +7,44 @@ import it.unipi.lab3.abalderi1.permissions.Permission;
 import it.unipi.lab3.abalderi1.protocol.Request;
 import it.unipi.lab3.abalderi1.protocol.Response;
 
-import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * La classe {@code PlayView} gestisce le richieste di gioco degli utenti.
+ */
 public class PlayView extends View {
+    /**
+     * Ottiene i permessi necessari per giocare.
+     *
+     * @return Una lista dei permessi necessari.
+     */
     @Override
     protected List<Permission> getPermissions() {
         return List.of(new IsUserLoggedPermission());
     }
 
+    /**
+     * Elabora la richiesta di gioco.
+     *
+     * @param request La richiesta inviata dal client.
+     * @param user L'utente associato alla richiesta.
+     * @return Una risposta che contiene il risultato del tentativo di gioco.
+     */
     @Override
     public Response handleRequestWithPermissions(Request request, User user) {
         Game lastGame = user.getLastGame();
 
-        if (lastGame == null || !lastGame.isDiOggi()) {
+        if (lastGame == null || !lastGame.isValid()) {
             lastGame = new Game();
 
             user.addGame(lastGame);
             user.salva();
+        } else {
+            if (lastGame.isPartitaFinita()) return new Response("ALREADY_PLAYED", "Hai già giocato oggi");
+            else return new Response("ALREADY_STARTED", "Partita già iniziata");
         }
 
 
-        if (lastGame.isPartitaFinita() && lastGame.isDiOggi()) {
-            return new Response("400", getMessageJson("Hai già giocato oggi"));
-        }
-
-        if(lastGame.isDiOggi()) {
-            return new Response("400", getMessageJson("Partita già iniziata"));
-        }
-
-        return new Response("200", getMessageJson("Partita inizializzata"));
+        return new Response("SUCCESS", "Partita inizializzata");
     }
 }

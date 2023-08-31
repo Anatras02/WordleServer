@@ -10,13 +10,32 @@ import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.Socket;
 
+/**
+ * La classe {@code ClientHandler} gestisce le comunicazioni individuali con i client.
+ * Ogni client connesso viene servito da un'istanza separata di questa classe.
+ */
 public class ClientHandler implements Runnable {
+    /**
+     * Il socket attraverso il quale la comunicazione con il client avviene.
+     */
     Socket socket;
 
+    /**
+     * Costruttore per creare un'istanza del gestore del client.
+     *
+     * @param socket il socket associato al client connesso.
+     */
     public ClientHandler(Socket socket) {
         this.socket = socket;
     }
 
+    /**
+     * Legge una stringa dal socket finché non incontra una nuova riga o la fine dello stream.
+     *
+     * @param inputStreamReader l'input stream da cui leggere i dati.
+     * @return la stringa letta dal socket.
+     * @throws IOException in caso di errori di I/O durante la lettura.
+     */
     private String readFromSocket(InputStreamReader inputStreamReader) throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
         int c;
@@ -33,12 +52,23 @@ public class ClientHandler implements Runnable {
         return stringBuilder.toString();
     }
 
+    /**
+     * Scrive una stringa sul socket seguita da una nuova riga.
+     *
+     * @param outputStreamWriter l'output stream su cui scrivere i dati.
+     * @param message il messaggio da scrivere sul socket.
+     * @throws IOException in caso di errori di I/O durante la scrittura.
+     */
     private void writeToSocket(OutputStreamWriter outputStreamWriter, String message) throws IOException {
         outputStreamWriter.write(message);
         outputStreamWriter.write('\n');
         outputStreamWriter.flush();
     }
 
+    /**
+     * La logica principale per gestire la comunicazione con il client.
+     * Legge i comandi dal client, li elabora e invia le risposte appropriate.
+     */
     public void run() {
         InputStream input;
         OutputStream output;
@@ -84,7 +114,7 @@ public class ClientHandler implements Runnable {
                          NoSuchMethodException e) {
                     response = new Response("500", "Internal server error");
                 } catch (NoPermissionException e) {
-                    response = new Response("403", e.getMessage());
+                    response = new Response("INVALID_PERMISSION", e.getMessage());
                 }
 
 

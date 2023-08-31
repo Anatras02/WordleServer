@@ -5,10 +5,19 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 
+/**
+ * Classe di utilità per l'invio di messaggi multicast.
+ */
 public class MulticastSocketUtil {
     private static final String MULTICAST_ADDRESS = "224.0.0.1";
     private static final int MULTICAST_PORT = 4446;
 
+    /**
+     * Condivide la stringa fornita come messaggio multicast.
+     *
+     * @param result La stringa da multicast.
+     * @throws IOException se si verifica un errore di I/O durante il multicast.
+     */
     public static void share(String result) throws IOException {
         MulticastSocket socket = new MulticastSocket();
         InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
