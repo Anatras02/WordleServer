@@ -2,23 +2,29 @@ package it.unipi.lab3.abalderi1.data;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Classe che rappresenta una singola sessione di gioco con metriche associate.
  */
 public class Game implements Comparable<Game> {
     LocalDateTime datetime;
-    boolean partitaFinita;
-    boolean vittoria;
-    int tentativi;
-    boolean valida;
+    private final AtomicBoolean partitaFinita;
+    private final AtomicBoolean vittoria;
+
+    AtomicInteger tentativi;
+    private final AtomicBoolean valida;
     ArrayList<String> parole = new ArrayList<>(12);
 
     public Game() {
-        this.vittoria = false;
-        this.partitaFinita = false;
-        this.valida = true;
-        this.tentativi = 0;
+        this.vittoria = new AtomicBoolean(false);
+        this.partitaFinita = new AtomicBoolean(false);
+        this.valida = new AtomicBoolean(true);
+        this.tentativi = new AtomicInteger(0);
         this.datetime = LocalDateTime.now();
     }
 
@@ -27,44 +33,43 @@ public class Game implements Comparable<Game> {
     }
 
     public boolean isPartitaFinita() {
-        return partitaFinita;
+        return partitaFinita.get();
     }
 
     public void finisci() {
-        this.partitaFinita = true;
+        this.partitaFinita.set(true);
     }
 
     public int getTentativi() {
-        return tentativi;
+        return tentativi.get();
     }
 
-    public void incrementTentativi() {
-        this.tentativi++;
+    public synchronized void incrementTentativi() {
+        this.tentativi.incrementAndGet();
     }
 
-    @SuppressWarnings("unchecked")
-    public ArrayList<String> getParole() {
-        return (ArrayList<String>) parole.clone();
+    public synchronized ArrayList<String> getParole() {
+        return new ArrayList<>(parole);
     }
 
-    public void addParola(String parola) {
+    public synchronized void addParola(String parola) {
         this.parole.add(parola);
     }
 
     public boolean isVinta() {
-        return vittoria;
+        return vittoria.get();
     }
 
     public void setVittoria(boolean vittoria) {
-        this.vittoria = vittoria;
+        this.vittoria.set(vittoria);
     }
 
     public boolean isValid() {
-        return valida;
+        return valida.get();
     }
 
     public void setValida(boolean valida) {
-        this.valida = valida;
+        this.valida.set(valida);
     }
 
 
@@ -75,8 +80,18 @@ public class Game implements Comparable<Game> {
      * @return Valore negativo, zero o positivo a seconda se il timestamp di questo gioco è minore, uguale o maggiore rispetto all'altro gioco.
      */
     @Override
-    public int compareTo(Game o) {
+    public synchronized int compareTo(Game o) {
         return o.datetime.compareTo(this.datetime);
     }
 
+    public String toString() {
+        return "Game{" +
+                "datetime=" + datetime +
+                ", partitaFinita=" + partitaFinita +
+                ", vittoria=" + vittoria +
+                ", tentativi=" + tentativi +
+                ", valida=" + valida +
+                ", parole=" + parole +
+                '}';
+    }
 }

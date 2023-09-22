@@ -11,6 +11,7 @@ import it.unipi.lab3.abalderi1.utils.LocalDateTimeAdapter;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.PriorityBlockingQueue;
 
 /**
  * Classe che rappresenta un utente con sessioni di gioco associate.
@@ -25,7 +26,7 @@ public class User extends Model {
     private final String username;
     private final String password;
 
-    private final PriorityQueue<Game> games = new PriorityQueue<>();
+    private final PriorityBlockingQueue<Game> games = new PriorityBlockingQueue<>();
 
     public User(String username, String password) {
         this.username = username;
@@ -36,11 +37,11 @@ public class User extends Model {
         return userOrm;
     }
 
-    public String getUsername() {
+    public synchronized String getUsername() {
         return username;
     }
 
-    public String getPassword() {
+    public synchronized String getPassword() {
         return password;
     }
 
@@ -95,7 +96,7 @@ public class User extends Model {
      *
      * @param game L'oggetto Game che rappresenta la sessione aggiornata.
      */
-    public void editLastGame(Game game) {
+    public synchronized void editLastGame(Game game) {
         games.poll();
         games.offer(game);
     }
@@ -110,20 +111,11 @@ public class User extends Model {
     }
 
     /**
-     * Restituisce tutte le sessioni di gioco associate all'utente.
-     *
-     * @return Una PriorityQueue contenente tutte le sessioni di gioco dell'utente.
-     */
-    public PriorityQueue<Game> getGames() {
-        return this.games;
-    }
-
-    /**
      * Restituisce l'ultima sessione di gioco effettuata dall'utente.
      *
      * @return L'oggetto Game che rappresenta l'ultima sessione di gioco. Null se non sono presenti sessioni.
      */
-    public Game getLastGame() {
+    public synchronized Game getLastGame() {
         if (this.games.isEmpty())
             return null;
 
@@ -136,7 +128,7 @@ public class User extends Model {
      * @return L'oggetto Statistica contenente tutte le informazioni statistiche dell'utente.
      * @see Statistica per ulteriori dettagli sulle informazioni statistiche.
      */
-    public Statistica getStatistiche() {
+    public synchronized Statistica getStatistiche() {
         Statistica statistiche = new Statistica();
 
         statistiche.calcola(this.games);
@@ -158,13 +150,20 @@ public class User extends Model {
         return gson.toJson(this);
     }
 
+    public String toString() {
+        return "User{" +
+                "username='" + username + '\'' +
+                ", games=" + games +
+                '}';
+    }
+
     /**
      * Invalida tutte le sessioni di gioco associate all'utente.
      * <p>
      * Questo metodo può essere utilizzato in situazioni in cui si desidera marcare tutte le partite
      * dell'utente come non più giocabili (anche se non ancora terminate).
      */
-    public void invalidateGames() {
+    public synchronized void invalidateGames() {
         for (Game game : games) {
             game.setValida(false);
             game.finisci();

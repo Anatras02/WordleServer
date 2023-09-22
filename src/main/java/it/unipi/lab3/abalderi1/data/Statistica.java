@@ -4,44 +4,47 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.PriorityQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Classe che gestisce e calcola le statistiche del gioco.
-
+ * <p>
  * Questa classe aggrega le metriche dai giochi completati e fornisce un riepilogo statistico.
  */
 public class Statistica {
-    int partiteGiocate;
-    int partiteVinte;
-    int streakVittorie;
-    int maxStreakVittorie;
-    HashMap<Integer, Integer> distribuzioneTentativi;
+    AtomicInteger partiteGiocate;
+    AtomicInteger partiteVinte;
+    AtomicInteger streakVittorie;
+    AtomicInteger maxStreakVittorie;
+    ConcurrentHashMap<Integer, Integer> distribuzioneTentativi;
 
     public Statistica() {
-        this.partiteGiocate = 0;
-        this.partiteVinte = 0;
-        this.streakVittorie = 0;
-        this.maxStreakVittorie = 0;
-        this.distribuzioneTentativi = new HashMap<>();
+        this.partiteGiocate = new AtomicInteger(0);
+        this.partiteVinte = new AtomicInteger(0);
+        this.streakVittorie = new AtomicInteger(0);
+        this.maxStreakVittorie = new AtomicInteger(0);
+        this.distribuzioneTentativi = new ConcurrentHashMap<>();
     }
 
     public int getPartiteGiocate() {
-        return partiteGiocate;
+        return partiteGiocate.get();
     }
 
     public int getPartiteVinte() {
-        return partiteVinte;
+        return partiteVinte.get();
     }
 
     public int getStreakVittorie() {
-        return streakVittorie;
+        return streakVittorie.get();
     }
 
     public int getMaxStreakVittorie() {
-        return maxStreakVittorie;
+        return maxStreakVittorie.get();
     }
 
-    public HashMap<Integer, Integer> getDistribuzioneTentativi() {
+    public ConcurrentHashMap<Integer, Integer> getDistribuzioneTentativi() {
         return distribuzioneTentativi;
     }
 
@@ -52,17 +55,17 @@ public class Statistica {
      */
     private void addPartita(Game partita) {
 
-        if(partita.isPartitaFinita()) {
-            partiteGiocate++;
+        if (partita.isPartitaFinita()) {
+            partiteGiocate.incrementAndGet();
 
             if (partita.isVinta()) {
-                partiteVinte++;
-                streakVittorie++;
-                if (streakVittorie > maxStreakVittorie) {
+                partiteVinte.incrementAndGet();
+                streakVittorie.incrementAndGet();
+                if (streakVittorie.get() > maxStreakVittorie.get()) {
                     maxStreakVittorie = streakVittorie;
                 }
             } else {
-                streakVittorie = 0;
+                streakVittorie.set(0);
             }
 
             if (partita.isPartitaFinita() && partita.isVinta()) {
@@ -81,8 +84,9 @@ public class Statistica {
      *
      * @param games, coda di partite ordinate per data
      */
-    public void calcola(PriorityQueue<Game> games) {
+    public synchronized void calcola(PriorityBlockingQueue<Game> games) {
         PriorityQueue<Game> reversedGames = new PriorityQueue<>(Collections.reverseOrder());
+
         reversedGames.addAll(games);
 
         for (Game game : reversedGames) {

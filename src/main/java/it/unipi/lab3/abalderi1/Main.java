@@ -7,13 +7,18 @@ import it.unipi.lab3.abalderi1.data.orm.UserOrm;
 
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+/**
+ * Appunti miei:
+ * 1. Era meglio usare TypeToken invece che .class quando si fa la reflection per GSON
+ * 2. Era meglio usare un ExectuorService con DiscardOldestPolicy invece di creare LastTaskExecutor
+ * 3.
+ */
 
 /**
  * La classe {@code Main} gestisce l'avvio del server, l'ascolto dei client e la generazione
@@ -90,12 +95,7 @@ public class Main {
     public static void main(String[] args) {
         ConfigHandler configHandler;
 
-        try {
-            configHandler = new ConfigHandler("config.properties");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
+        configHandler = ConfigHandler.getInstance();
 
         schedulerGenerazioneNuovaParola(configHandler);
 
@@ -108,6 +108,5 @@ public class Main {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
     }
 }

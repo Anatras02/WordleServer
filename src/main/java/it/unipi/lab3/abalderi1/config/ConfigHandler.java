@@ -9,7 +9,10 @@ import java.util.Properties;
  * Questa classe permette di caricare e recuperare proprietà da un file specificato.
  */
 public class ConfigHandler {
-    private final Properties properties;
+    private final String filePath;
+    private Properties properties;
+    private boolean isLoaded = false;
+    private static ConfigHandler instance;
 
     /**
      * Costruttore della classe ConfigHandler.
@@ -18,11 +21,59 @@ public class ConfigHandler {
      * @param filePath Il percorso del file di proprietà da caricare.
      * @throws IOException Se ci sono problemi durante la lettura del file.
      */
-    public ConfigHandler(String filePath) throws IOException {
+    private ConfigHandler(String filePath) throws IOException {
+        this.filePath = filePath;
+        new Thread(this::loadPropertiesInBackground).start();
+
         properties = new Properties();
         FileInputStream input = new FileInputStream(filePath);
         properties.load(input);
         input.close();
+    }
+
+    public static ConfigHandler getInstance() {
+        if (instance == null) {
+            try {
+                instance = new ConfigHandler("config.properties");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return instance;
+    }
+
+    /**
+     * Carica le proprietà in un thread separato in background.
+     */
+    private void loadPropertiesInBackground() {
+        try {
+            properties = new Properties();
+            FileInputStream input = new FileInputStream(filePath);
+            properties.load(input);
+            input.close();
+        } catch (IOException e) {
+            properties = null;
+        }
+
+        synchronized (this) {
+            isLoaded = true;
+            this.notifyAll();
+        }
+    }
+
+    /**
+     * Garantisce che le proprietà siano state caricate prima di accedere ad esse.
+     * Se le proprietà non sono ancora caricate, il thread corrente attende.
+     *
+     * @throws InterruptedException Se il thread corrente è interrotto mentre è in attesa.
+     */
+    private void ensurePropertiesLoaded() throws InterruptedException {
+        synchronized (this) {
+            while (!isLoaded) {
+                this.wait();
+            }
+        }
     }
 
     /**
@@ -32,6 +83,12 @@ public class ConfigHandler {
      * @return Il valore della proprietà come stringa.
      */
     public String getProperty(String key) {
+        try {
+            ensurePropertiesLoaded();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
         return properties.getProperty(key);
     }
 
